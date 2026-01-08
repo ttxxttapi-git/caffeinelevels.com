@@ -1,0 +1,155 @@
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width,initial-scale=1" />
+      <title>Caffeine Cutoff Time Calculator – Plan Caffeine for Sleep</title>
+      <meta name="description" content="Estimate your latest caffeine cutoff time based on bedtime, sensitivity (half-life), and a bedtime target. Educational estimates only." />
+      <link rel="canonical" href="https://example.com/caffeine-cutoff-calculator/" />
+      <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+      <link rel="stylesheet" href="/assets/style.css" />
+
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <a class="brand" href="/">
+            <div class="logo">C</div>
+            <div>
+              <div class="brand-title">Caffeine Tools</div>
+              <div class="muted">Sleep-friendly decisions, fast</div>
+            </div>
+          </a>
+          <div class="nav">
+            <a href="/tools/">Tools</a>
+            <a href="/guides/">Guides</a>
+            <a href="/#faq">FAQ</a>
+          </div>
+        </div>
+
+<div class="hero">
+  <h1>Caffeine Cutoff Time Calculator</h1>
+  <p>
+    Estimate the latest time you can have caffeine so your bedtime caffeine level stays below a target.
+    Educational estimate — not medical advice.
+  </p>
+  <div class="pills">
+    <span class="pill">Half-life model</span>
+    <span class="pill">Sensitivity tiers</span>
+    <span class="pill">Bedtime target</span>
+  </div>
+</div>
+
+<div id="tool-root" class="section card">
+  <div class="notice ok">
+    <strong>Based on research showing caffeine can affect sleep even 6 hours before bed</strong>
+    <div class="muted">If you’re unsure, pick “High sensitivity” (slower clearance) and use a lower bedtime target.</div>
+  </div>
+
+  <div class="form two">
+    <div>
+      <label for="bedtime">Target bedtime</label>
+      <input id="bedtime" type="time" value="23:00" />
+      <div class="small">Your usual lights-out time.</div>
+    </div>
+    <div>
+      <label for="dose">Planned last dose (mg)</label>
+      <input id="dose" type="number" min="0" step="1" value="100" />
+      <div class="small">Typical coffee: ~80–120mg (varies).</div>
+    </div>
+  </div>
+
+  <div class="form two">
+    <div>
+      <label for="sens">Sensitivity (half-life)</label>
+      <select id="sens">
+        <option value="low">Low (faster clearance) – 4.0h</option>
+        <option value="med" selected>Medium (average) – 5.5h</option>
+        <option value="high">High (slower clearance) – 7.0h</option>
+      </select>
+      <div class="small">Average half-life is often cited around ~5–6 hours, but it varies.</div>
+    </div>
+    <div>
+      <label for="target">Target caffeine at bedtime (mg)</label>
+      <input id="target" type="number" min="0" step="1" value="25" />
+      <div class="small">Lower target = earlier cutoff (more conservative).</div>
+    </div>
+  </div>
+
+  <div class="form two">
+    <div>
+      <label for="absorb">Absorption buffer (minutes)</label>
+      <input id="absorb" type="number" min="0" step="1" value="30" />
+      <div class="small">Conservative buffer for “kick-in” time.</div>
+    </div>
+    <div class="inline" style="align-items:end;justify-content:flex-end">
+      <button class="btn" id="calcCutoff" type="button">Calculate cutoff time</button>
+    </div>
+  </div>
+
+  <div id="cutoffOut" class="notice" style="display:none"></div>
+
+  <div class="hr"></div>
+  <div class="muted">
+    Tip: if you consistently have trouble falling asleep, try an earlier cutoff (or a higher sensitivity tier) and compare over a week.
+  </div>
+</div>
+
+<div class="section">
+  <h2>FAQ</h2>
+  <details>
+    <summary>Why does the calculator ask for a “target mg” at bedtime?</summary>
+    <p>Different people tolerate different residual caffeine. A bedtime target gives you a clear “how conservative do I want to be?” control.</p>
+  </details>
+  <details>
+    <summary>Is this medical advice?</summary>
+    <p>No. This tool provides an educational estimate. If you have medical concerns or take medications, talk to a clinician.</p>
+  </details>
+</div>
+
+        <div class="footer">Educational estimates only. Not medical advice.</div>
+      </div>
+      <script src="/assets/app.js"></script>
+
+<script>
+  function calcCutoff(){
+    const bedtimeMin = parseTimeToMinutes($('bedtime').value);
+    const dose = Number($('dose').value);
+    const target = Number($('target').value);
+    const absorb = Math.max(0, Number($('absorb').value));
+    const tier = $('sens').value;
+    const halfLifeH = (tier==='low')?4.0:(tier==='high')?7.0:5.5;
+
+    const out = $('cutoffOut');
+    out.style.display='block';
+
+    if(bedtimeMin===null || !isFinite(dose) || !isFinite(target) || dose<=0 || target<=0){
+      out.className='notice warn';
+      out.innerHTML='<strong>Please check your inputs.</strong><div class="muted">Dose and target must be greater than 0.</div>';
+      return;
+    }
+
+    let deltaHours = 0;
+    if(dose > target){
+      deltaHours = halfLifeH * log2(dose/target);
+    }
+    const deltaMin = Math.ceil(deltaHours*60);
+    const cutoffMin = bedtimeMin - deltaMin - absorb;
+
+    out.className='notice ok';
+    out.innerHTML = `
+      <div class="result">Latest cutoff time: ${minutesToTime(cutoffMin)}</div>
+      <div class="kv">
+        <div class="item"><div class="k">Half-life used</div><div class="v">${halfLifeH.toFixed(1)}h</div></div>
+        <div class="item"><div class="k">Clearance window</div><div class="v">${(deltaMin/60).toFixed(1)}h</div></div>
+        <div class="item"><div class="k">Absorption buffer</div><div class="v">${absorb} min</div></div>
+        <div class="item"><div class="k">Bedtime target</div><div class="v">${target} mg</div></div>
+      </div>
+      <div class="muted" style="margin-top:10px">Reminder: many sleep resources recommend avoiding substantial caffeine within ~6 hours of bedtime.</div>
+    `;
+  }
+  $('calcCutoff').addEventListener('click', calcCutoff);
+</script>
+
+    </body>
+    </html>

@@ -1,0 +1,74 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Caffeine Cutoff Time Calculator – When to Stop Drinking Coffee for Sleep</title>
+  <meta name="description" content="Estimate your latest caffeine cutoff time based on bedtime and sensitivity. Educational estimate, not medical advice." />
+  <link rel="canonical" href="https://example.com/caffeine-cutoff-calculator/" />
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5;margin:0;background:#fff;color:#111}
+    .wrap{max-width:860px;margin:0 auto;padding:22px}
+    .card{border:1px solid #e5e7eb;border-radius:14px;padding:16px;margin:14px 0}
+    label{display:block;font-weight:600;margin:10px 0 6px}
+    input,select{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:10px;font-size:16px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .btn{border:1px solid #111;border-radius:12px;padding:10px 14px;background:#111;color:#fff;font-weight:700;cursor:pointer}
+    .muted{color:#6b7280;font-size:14px}
+    .result{font-size:18px;font-weight:800}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <nav class="muted"><a href="/">← All tools</a></nav>
+    <h1>Caffeine Cutoff Time Calculator</h1>
+    <p class="muted">Estimate the latest time you can have caffeine so your bedtime level stays low.</p>
+
+    <section class="card">
+      <div class="row">
+        <div>
+          <label>Bedtime</label>
+          <input id="bedtime" type="time" value="23:00">
+        </div>
+        <div>
+          <label>Dose (mg)</label>
+          <input id="dose" type="number" value="100">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Sensitivity</label>
+          <select id="sens">
+            <option value="4">Low</option>
+            <option value="5.5" selected>Medium</option>
+            <option value="7">High</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:end">
+          <button class="btn" onclick="calc()">Calculate</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="out" class="card" style="display:none"></section>
+  </main>
+
+<script>
+function calc(){
+  const bt=document.getElementById('bedtime').value.split(':');
+  const bedtime=+bt[0]*60+ +bt[1];
+  const dose=+document.getElementById('dose').value;
+  const hl=+document.getElementById('sens').value;
+  const target=25;
+  const delta=hl*Math.log2(dose/target)*60;
+  const cutoff=bedtime-delta;
+  const h=Math.floor(((cutoff%1440)+1440)%1440/60);
+  const m=Math.round(((cutoff%1440)+1440)%1440%60);
+  const out=document.getElementById('out');
+  out.style.display='block';
+  out.innerHTML='<div class="result">Latest cutoff time: '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+'</div>';
+}
+</script>
+</body>
+</html>

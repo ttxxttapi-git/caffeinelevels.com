@@ -1,0 +1,141 @@
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width,initial-scale=1" />
+      <title>Caffeine Clearance Calculator – Time to Drop Below a Threshold</title>
+      <meta name="description" content="Estimate how long until caffeine drops below a chosen threshold (e.g., 25mg), based on a half-life tier. Educational estimates only." />
+      <link rel="canonical" href="https://example.com/caffeine-clearance-calculator/" />
+      <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+      <link rel="stylesheet" href="/assets/style.css" />
+
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <a class="brand" href="/">
+            <div class="logo">C</div>
+            <div>
+              <div class="brand-title">Caffeine Tools</div>
+              <div class="muted">Sleep-friendly decisions, fast</div>
+            </div>
+          </a>
+          <div class="nav">
+            <a href="/tools/">Tools</a>
+            <a href="/guides/">Guides</a>
+            <a href="/#faq">FAQ</a>
+          </div>
+        </div>
+
+<div class="hero">
+  <h1>Caffeine Clearance Calculator</h1>
+  <p>
+    Estimate how long it takes for your caffeine to drop below a chosen threshold (e.g., 25mg).
+    Educational estimate — not medical advice.
+  </p>
+  <div class="pills">
+    <span class="pill">Time to threshold</span>
+    <span class="pill">Sensitivity tiers</span>
+    <span class="pill">Simple + useful</span>
+  </div>
+</div>
+
+<div id="tool-root" class="section card">
+  <div class="notice ok">
+    <strong>Based on research showing caffeine can affect sleep even 6 hours before bed</strong>
+    <div class="muted">Use this tool to plan earlier timing when sleep matters.</div>
+  </div>
+
+  <div class="form two">
+    <div>
+      <label for="dose3">Current caffeine (mg)</label>
+      <input id="dose3" type="number" min="0" step="1" value="150" />
+      <div class="small">If unsure, use your last drink’s estimate.</div>
+    </div>
+    <div>
+      <label for="tier3">Sensitivity (half-life)</label>
+      <select id="tier3">
+        <option value="low">Low (4.0h)</option>
+        <option value="med" selected>Medium (5.5h)</option>
+        <option value="high">High (7.0h)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form two">
+    <div>
+      <label for="threshold3">Threshold (mg)</label>
+      <input id="threshold3" type="number" min="0" step="1" value="25" />
+      <div class="small">Lower threshold = more conservative.</div>
+    </div>
+    <div>
+      <label for="now3">Start time</label>
+      <input id="now3" type="time" value="16:00" />
+      <div class="small">Used to show the clock time you’ll cross the threshold.</div>
+    </div>
+  </div>
+
+  <div class="inline" style="justify-content:flex-end">
+    <button class="btn" id="calcClear" type="button">Calculate clearance</button>
+  </div>
+
+  <div id="clearOut" class="notice" style="display:none"></div>
+</div>
+
+<div class="section">
+  <h2>FAQ</h2>
+  <details>
+    <summary>What does “threshold” mean?</summary>
+    <p>It’s the caffeine level you’d like to be below. 25mg is a conservative default for many people.</p>
+  </details>
+  <details>
+    <summary>Why might reality differ?</summary>
+    <p>Metabolism varies, and caffeine intake isn’t always a single clean dose. Treat results as planning guidance.</p>
+  </details>
+</div>
+
+        <div class="footer">Educational estimates only. Not medical advice.</div>
+      </div>
+      <script src="/assets/app.js"></script>
+
+<script>
+  function calcClearance(){
+    const dose=Number($('dose3').value);
+    const thr=Number($('threshold3').value);
+    const startMin=parseTimeToMinutes($('now3').value);
+    const tier=$('tier3').value;
+    const halfLifeH=(tier==='low')?4.0:(tier==='high')?7.0:5.5;
+
+    const out=$('clearOut');
+    out.style.display='block';
+
+    if(!isFinite(dose)||!isFinite(thr)||dose<=0||thr<=0){
+      out.className='notice warn';
+      out.innerHTML='<strong>Please check inputs.</strong><div class="muted">Dose and threshold must be greater than 0.</div>';
+      return;
+    }
+    if(dose<=thr){
+      out.className='notice ok';
+      out.innerHTML=`<div class="result">Already below threshold</div><div class="muted">Your current estimate (${Math.round(dose)}mg) is already ≤ ${thr}mg.</div>`;
+      return;
+    }
+    const hours = halfLifeH * log2(dose/thr);
+    const minutes = Math.ceil(hours*60);
+    const crossTime = (startMin===null)? null : startMin + minutes;
+
+    out.className='notice ok';
+    out.innerHTML=`
+      <div class="result">Time to ${thr}mg: ${(minutes/60).toFixed(1)} hours</div>
+      <div class="kv">
+        <div class="item"><div class="k">Half-life used</div><div class="v">${halfLifeH.toFixed(1)}h</div></div>
+        <div class="item"><div class="k">Estimated cross time</div><div class="v">${crossTime===null?'—':minutesToTime(crossTime)}</div></div>
+      </div>
+      <div class="muted" style="margin-top:10px">If bedtime is soon, consider reducing dose or moving caffeine earlier next time.</div>
+    `;
+  }
+  $('calcClear').addEventListener('click', calcClearance);
+  setTimeout(calcClearance, 50);
+</script>
+
+    </body>
+    </html>

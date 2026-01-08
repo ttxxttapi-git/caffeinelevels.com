@@ -1,0 +1,112 @@
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width,initial-scale=1" />
+      <title>Caffeine Tools – 3 Calculators (Tabs)</title>
+      <meta name="description" content="Switch between caffeine cutoff, caffeine levels curve (multiple doses), and clearance calculators. Educational estimates only." />
+      <link rel="canonical" href="https://example.com/tools/" />
+      <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+      <link rel="stylesheet" href="/assets/style.css" />
+
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <a class="brand" href="/">
+            <div class="logo">C</div>
+            <div>
+              <div class="brand-title">Caffeine Tools</div>
+              <div class="muted">Sleep-friendly decisions, fast</div>
+            </div>
+          </a>
+          <div class="nav">
+            <a href="/tools/">Tools</a>
+            <a href="/guides/">Guides</a>
+            <a href="/#faq">FAQ</a>
+          </div>
+        </div>
+
+<div class="hero">
+  <h1>Tools</h1>
+  <p>Use the tabs to switch calculators. Each tool also has its own page for bookmarking and search.</p>
+  <div class="pills">
+    <span class="pill">Cutoff</span>
+    <span class="pill">Levels curve</span>
+    <span class="pill">Clearance</span>
+  </div>
+</div>
+
+<div class="section" id="toolTabs">
+  <div class="tabs" role="tablist" aria-label="Caffeine tools">
+    <button class="tab-btn" role="tab" aria-selected="true" data-tab="cutoff">Cutoff time</button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="levels">Levels curve</button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="clearance">Clearance</button>
+  </div>
+
+  <div class="card tab-panel active" data-panel="cutoff">
+    <div class="inline" style="justify-content:space-between">
+      <div class="badge">Tool 1 · Cutoff time</div>
+      <a class="btn secondary" href="/caffeine-cutoff-calculator/">Open full page</a>
+    </div>
+    <div class="hr"></div>
+    <div id="cutoffInline"></div>
+  </div>
+
+  <div class="card tab-panel" data-panel="levels">
+    <div class="inline" style="justify-content:space-between">
+      <div class="badge">Tool 2 · Levels (multiple doses)</div>
+      <a class="btn secondary" href="/caffeine-levels-calculator/">Open full page</a>
+    </div>
+    <div class="hr"></div>
+    <div id="levelsInline"></div>
+  </div>
+
+  <div class="card tab-panel" data-panel="clearance">
+    <div class="inline" style="justify-content:space-between">
+      <div class="badge">Tool 3 · Clearance</div>
+      <a class="btn secondary" href="/caffeine-clearance-calculator/">Open full page</a>
+    </div>
+    <div class="hr"></div>
+    <div id="clearanceInline"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="notice ok">
+    <strong>Based on research showing caffeine can affect sleep even 6 hours before bed</strong>
+    <div class="muted">Use conservative settings if you’re sensitive, and treat results as estimates.</div>
+  </div>
+  <details>
+    <summary>Disclaimer</summary>
+    <p>This website is for educational purposes only and is not medical advice. Results are estimates and may not match your personal metabolism.</p>
+  </details>
+</div>
+
+        <div class="footer">Educational estimates only. Not medical advice.</div>
+      </div>
+      <script src="/assets/app.js"></script>
+
+<script>
+  // Inject minimal inline versions by loading the actual tool pages' markup fragments
+  // (keeps SEO-friendly full pages, while tabs show the same calculators).
+  async function injectToolFragment(url, targetId, selector){
+    try{
+      const res = await fetch(url, {cache:'no-cache'});
+      const html = await res.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const el = doc.querySelector(selector);
+      if(el){ document.getElementById(targetId).innerHTML = el.outerHTML; }
+    }catch(e){
+      document.getElementById(targetId).innerHTML = '<div class="muted">Could not load tool preview. Open the full page instead.</div>';
+    }
+  }
+  injectToolFragment('/caffeine-cutoff-calculator/', 'cutoffInline', '#tool-root');
+  injectToolFragment('/caffeine-levels-calculator/', 'levelsInline', '#tool-root');
+  injectToolFragment('/caffeine-clearance-calculator/', 'clearanceInline', '#tool-root');
+
+  initTabs('toolTabs', 'cutoff');
+</script>
+
+    </body>
+    </html>

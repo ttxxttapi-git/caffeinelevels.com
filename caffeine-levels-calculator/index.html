@@ -1,0 +1,208 @@
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width,initial-scale=1" />
+      <title>Caffeine Levels Calculator – Multiple Doses Curve</title>
+      <meta name="description" content="Enter multiple caffeine doses and visualize your estimated caffeine curve, including bedtime remaining. Educational estimates only." />
+      <link rel="canonical" href="https://example.com/caffeine-levels-calculator/" />
+      <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+      <link rel="stylesheet" href="/assets/style.css" />
+
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <a class="brand" href="/">
+            <div class="logo">C</div>
+            <div>
+              <div class="brand-title">Caffeine Tools</div>
+              <div class="muted">Sleep-friendly decisions, fast</div>
+            </div>
+          </a>
+          <div class="nav">
+            <a href="/tools/">Tools</a>
+            <a href="/guides/">Guides</a>
+            <a href="/#faq">FAQ</a>
+          </div>
+        </div>
+
+<div class="hero">
+  <h1>Caffeine Levels Calculator (Multiple Doses)</h1>
+  <p>
+    Enter multiple drinks and visualize your estimated caffeine curve. See estimated caffeine remaining at bedtime.
+    Educational estimate — not medical advice.
+  </p>
+  <div class="pills">
+    <span class="pill">Multiple doses</span>
+    <span class="pill">Curve chart</span>
+    <span class="pill">Bedtime remaining</span>
+  </div>
+</div>
+
+<div id="tool-root" class="section card">
+  <div class="notice ok">
+    <strong>Based on research showing caffeine can affect sleep even 6 hours before bed</strong>
+    <div class="muted">If sleep is the priority, aim for an earlier cutoff and consider a longer half-life tier.</div>
+  </div>
+
+  <div class="form two">
+    <div>
+      <label for="hlTier2">Sensitivity (half-life)</label>
+      <select id="hlTier2">
+        <option value="low">Low (4.0h)</option>
+        <option value="med" selected>Medium (5.5h)</option>
+        <option value="high">High (7.0h)</option>
+      </select>
+      <div class="small">Choose “High” if you’re sensitive to caffeine.</div>
+    </div>
+    <div>
+      <label for="bedtime2">Bedtime (optional)</label>
+      <input id="bedtime2" type="time" value="23:00" />
+      <div class="small">Used to estimate remaining caffeine at bedtime.</div>
+    </div>
+  </div>
+
+  <div class="hr"></div>
+
+  <div class="inline" style="justify-content:space-between">
+    <div class="badge">Doses (time + mg)</div>
+    <button class="btn secondary" id="addDose" type="button">+ Add dose</button>
+  </div>
+
+  <table class="table" aria-label="Dose table">
+    <thead>
+      <tr><th style="width:120px">Time</th><th style="width:140px">mg</th><th>Notes</th><th style="width:90px"></th></tr>
+    </thead>
+    <tbody id="doseRows"></tbody>
+  </table>
+
+  <div class="inline" style="justify-content:flex-end">
+    <button class="btn" id="calcLevels" type="button">Calculate curve</button>
+  </div>
+
+  <div id="levelsOut" class="notice" style="display:none"></div>
+
+  <div class="section">
+    <div class="canvas-wrap">
+      <canvas id="levelsChart" aria-label="Caffeine curve chart"></canvas>
+    </div>
+    <div class="small">Chart shows estimated caffeine remaining over time (mg). It’s an approximation.</div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>FAQ</h2>
+  <details>
+    <summary>What should I enter for “mg”?</summary>
+    <p>Use your best estimate. Brew method and cup size vary a lot. The curve is mainly for planning relative timing.</p>
+  </details>
+  <details>
+    <summary>Does this account for food or sleep debt?</summary>
+    <p>No. It’s a simple half-life model for educational planning.</p>
+  </details>
+</div>
+
+        <div class="footer">Educational estimates only. Not medical advice.</div>
+      </div>
+      <script src="/assets/app.js"></script>
+
+<script>
+  function doseRowTemplate(time='09:00', mg=80, note=''){
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="time" value="${time}" class="dose-time"></td>
+      <td><input type="number" min="0" step="1" value="${mg}" class="dose-mg"></td>
+      <td><input type="text" placeholder="coffee, tea, energy drink..." value="${note}" class="dose-note"></td>
+      <td><button class="btn secondary btn-del" type="button">Remove</button></td>
+    `;
+    tr.querySelector('.btn-del').addEventListener('click',()=>tr.remove());
+    return tr;
+  }
+
+  function seedRows(){
+    const tb=$('doseRows');
+    tb.innerHTML='';
+    tb.appendChild(doseRowTemplate('09:00', 80, 'coffee'));
+    tb.appendChild(doseRowTemplate('14:00', 100, 'coffee'));
+  }
+
+  function readDoses(){
+    const rows=[...document.querySelectorAll('#doseRows tr')];
+    const doses=[];
+    for(const r of rows){
+      const t=r.querySelector('.dose-time').value;
+      const mg=Number(r.querySelector('.dose-mg').value);
+      const minutes=parseTimeToMinutes(t);
+      if(minutes===null || !isFinite(mg) || mg<=0) continue;
+      doses.push({timeHours: minutes/60, mg});
+    }
+    doses.sort((a,b)=>a.timeHours-b.timeHours);
+    return doses;
+  }
+
+  function calcCurve(){
+    const tier=$('hlTier2').value;
+    const halfLifeH = (tier==='low')?4.0:(tier==='high')?7.0:5.5;
+    const doses=readDoses();
+    const bedtimeMin=parseTimeToMinutes($('bedtime2').value);
+    const out=$('levelsOut');
+    out.style.display='block';
+
+    if(doses.length===0){
+      out.className='notice warn';
+      out.innerHTML='<strong>Add at least one dose.</strong><div class="muted">Enter a time and mg.</div>';
+      return;
+    }
+
+    const start=Math.min(...doses.map(d=>d.timeHours));
+    const end=Math.max(...doses.map(d=>d.timeHours)) + 14; // show through evening + buffer
+    const step=0.25; // 15 min
+    const points=[];
+    for(let t=start; t<=end; t+=step){
+      const y=sumRemaining(doses, t, halfLifeH);
+      points.push({x:t, y});
+    }
+
+    // bedtime remaining
+    let bedtimeRem=null;
+    if(bedtimeMin!==null){
+      const bt=bedtimeMin/60;
+      bedtimeRem = sumRemaining(doses, bt, halfLifeH);
+    }
+
+    out.className='notice ok';
+    out.innerHTML = `
+      <div class="result">Curve calculated</div>
+      <div class="kv">
+        <div class="item"><div class="k">Half-life used</div><div class="v">${halfLifeH.toFixed(1)}h</div></div>
+        <div class="item"><div class="k">Total mg entered</div><div class="v">${Math.round(doses.reduce((s,d)=>s+d.mg,0))} mg</div></div>
+        <div class="item"><div class="k">Doses</div><div class="v">${doses.length}</div></div>
+        <div class="item"><div class="k">Estimated at bedtime</div><div class="v">${bedtimeRem===null?'—':Math.round(bedtimeRem)+' mg'}</div></div>
+      </div>
+      <div class="muted" style="margin-top:10px">If bedtime remaining feels high for you, try earlier timing or a higher sensitivity tier.</div>
+    `;
+
+    const canvas=$('levelsChart');
+    drawLineChart(canvas, points, {
+      yLabel:'mg remaining',
+      xTicks:6,
+      xFormatter:(x)=>{
+        const hh=Math.floor((x%24+24)%24);
+        const mm=Math.round((x-hh)*60);
+        return String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+      }
+    });
+  }
+
+  $('addDose').addEventListener('click',()=>{
+    $('doseRows').appendChild(doseRowTemplate('16:00', 60, 'tea'));
+  });
+  $('calcLevels').addEventListener('click', calcCurve);
+  seedRows();
+  // draw initial
+  setTimeout(calcCurve, 50);
+</script>
+
+    </body>
+    </html>
