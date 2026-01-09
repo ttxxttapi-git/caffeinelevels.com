@@ -138,10 +138,9 @@
 
   out.className = 'notice ok';
 
-  // Check if cutoff time is negative (previous day)
-  const isPrevDay = cutoffMin < 0;
-  
-  // Handle negative times (previous day)
+  // Check if Latest cutoff time > Target bedtime (cutoffMin > bedtimeMin)
+  const isPrevDay = cutoffMin > bedtimeMin;  // Time falls on previous day
+
   let cutoffLabel = minutesToTime(cutoffMin);
   if (isPrevDay) {
     cutoffLabel = `Previous day: ${minutesToTime(cutoffMin)} <span class="muted">(previous day)</span>`;
@@ -159,6 +158,7 @@
       'Reminder: many sleep resources recommend avoiding substantial caffeine within ~6 hours of bedtime.' +
     '</div>';
 }
+
 
 
   $('calcCutoff').addEventListener('click', calcCutoff);
