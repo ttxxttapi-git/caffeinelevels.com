@@ -145,7 +145,7 @@
  // console.log(`cutoffMin: ${cutoffMin} minutes`);
 
       
-  const isPrevDay = cutoffMin <=0;  // Time falls on previous day
+  const isPrevDay = cutoffMin <0;  // Time falls on previous day
 
   let cutoffLabel = minutesToTime(cutoffMin);
   if (isPrevDay) {
