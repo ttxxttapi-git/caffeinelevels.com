@@ -88,23 +88,68 @@
       <script src="/assets/app.js"></script>
 
 <script>
-  // Inject minimal inline versions by loading the actual tool pages' markup fragments
-  // (keeps SEO-friendly full pages, while tabs show the same calculators).
-  async function injectToolFragment(url, targetId, selector){
-    try{
-      const res = await fetch(url, {cache:'no-cache'});
-      const html = await res.text();
-      const doc = new DOMParser().parseFromString(html, 'text/html');
-      const el = doc.querySelector(selector);
-      if(el){ document.getElementById(targetId).innerHTML = el.outerHTML; }
-    }catch(e){
-      document.getElementById(targetId).innerHTML = '<div class="muted">Could not load tool preview. Open the full page instead.</div>';
-    }
-  }
-  injectToolFragment('/caffeine-cutoff-calculator/', 'cutoffInline', '#tool-root');
-  injectToolFragment('/caffeine-levels-calculator/', 'levelsInline', '#tool-root');
-  injectToolFragment('/caffeine-clearance-calculator/', 'clearanceInline', '#tool-root');
+  // Inject markup from the full tool pages into tabs.
+  // NOTE: scripts inside injected HTML will NOT run, so we must call init functions manually.
+  function injectToolFragment(url, targetId, selector, onReady){
+    var target = document.getElementById(targetId);
+    if(!target) return;
 
+    target.innerHTML = '<div class="muted">Loading…</div>';
+
+    fetch(url, { cache: 'no-cache' })
+      .then(function(res){ return res.text(); })
+      .then(function(html){
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        var el = doc.querySelector(selector);
+
+        if(!el){
+          target.innerHTML = '<div class="muted">Could not load tool preview. Open the full page instead.</div>';
+          return;
+        }
+
+        // Insert markup (inline <script> won't execute)
+        target.innerHTML = el.outerHTML;
+
+        // Find the injected root node and init within that scope
+        var root = target.querySelector(selector) || target;
+        if(typeof onReady === 'function') onReady(root);
+      })
+      .catch(function(){
+        target.innerHTML = '<div class="muted">Could not load tool preview. Open the full page instead.</div>';
+      });
+  }
+
+  // Cutoff tab (init after injection)
+  injectToolFragment('../caffeine-cutoff-calculator/', 'cutoffInline', '#tool-root', function(root){
+    if(window.initCutoffTool) window.initCutoffTool(root);
+  });
+
+  // Levels tab
+  injectToolFragment('../caffeine-levels-calculator/', 'levelsInline', '#tool-root', function(root){
+    if(window.initLevelsTool) window.initLevelsTool(root);
+  });
+
+  // Clearance tab
+  injectToolFragment('../caffeine-clearance-calculator/', 'clearanceInline', '#tool-root', function(root){
+    if(window.initClearanceTool) window.initClearanceTool(root);
+  });
+
+
+
+injectToolFragment('../caffeine-levels-calculator/', 'levelsInline', '#tool-root', function(root){
+  if(window.initLevelsTool) window.initLevelsTool(root);
+});
+
+injectToolFragment('../caffeine-clearance-calculator/', 'clearanceInline', '#tool-root', function(root){
+  if(window.initClearanceTool) window.initClearanceTool(root);
+});
+
+
+
+
+
+
+  // Tabs
   initTabs('toolTabs', 'cutoff');
 </script>
 
