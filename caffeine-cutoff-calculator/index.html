@@ -137,16 +137,28 @@
     const cutoffMin = bedtimeMin - deltaMin - absorb;
 
     out.className='notice ok';
-    out.innerHTML = `
-      <div class="result">Latest cutoff time: ${minutesToTime(cutoffMin)}</div>
-      <div class="kv">
-        <div class="item"><div class="k">Half-life used</div><div class="v">${halfLifeH.toFixed(1)}h</div></div>
-        <div class="item"><div class="k">Clearance window</div><div class="v">${(deltaMin/60).toFixed(1)}h</div></div>
-        <div class="item"><div class="k">Absorption buffer</div><div class="v">${absorb} min</div></div>
-        <div class="item"><div class="k">Bedtime target</div><div class="v">${target} mg</div></div>
-      </div>
-      <div class="muted" style="margin-top:10px">Reminder: many sleep resources recommend avoiding substantial caffeine within ~6 hours of bedtime.</div>
-    `;
+   
+const isPrevDay = cutoffMin < 0;
+const cutoffLabel =
+  minutesToTime(cutoffMin) + (isPrevDay ? ' <span class="muted">(previous day)</span>' : '');
+
+out.innerHTML =
+  '<div class="result">Latest cutoff time: ' + cutoffLabel + '</div>' +
+  '<div class="kv">' +
+    '<div class="item"><div class="k">Half-life used</div><div class="v">' + halfLifeH.toFixed(1) + 'h</div></div>' +
+    '<div class="item"><div class="k">Clearance window</div><div class="v">' + (deltaMin/60).toFixed(1) + 'h</div></div>' +
+    '<div class="item"><div class="k">Absorption buffer</div><div class="v">' + absorb + ' min</div></div>' +
+    '<div class="item"><div class="k">Bedtime target</div><div class="v">' + target + ' mg</div></div>' +
+  '</div>' +
+  '<div class="muted" style="margin-top:10px">' +
+    'Reminder: many sleep resources recommend avoiding substantial caffeine within ~6 hours of bedtime.' +
+  '</div>';
+
+
+
+
+
+      
   }
   $('calcCutoff').addEventListener('click', calcCutoff);
 </script>
