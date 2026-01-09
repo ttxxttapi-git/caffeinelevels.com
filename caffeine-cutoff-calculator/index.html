@@ -140,12 +140,12 @@
 
   // Check if Latest cutoff time > Target bedtime (cutoffMin > bedtimeMin)
 
-  console.log(`bedtimeMin: ${bedtimeMin} minutes`);
+ // console.log(`bedtimeMin: ${bedtimeMin} minutes`);
  
-  console.log(`cutoffMin: ${cutoffMin} minutes`);
+ // console.log(`cutoffMin: ${cutoffMin} minutes`);
 
       
-  const isPrevDay = cutoffMin > bedtimeMin;  // Time falls on previous day
+  const isPrevDay = cutoffMin <=0;  // Time falls on previous day
 
   let cutoffLabel = minutesToTime(cutoffMin);
   if (isPrevDay) {
