@@ -118,19 +118,19 @@
   const target = Number($('target').value);
   const absorb = Math.max(0, Number($('absorb').value));
   const tier = $('sens').value;
-  const halfLifeH = (tier==='low')?4.0:(tier==='high')?7.0:5.5;
+  const halfLifeH = (tier === 'low') ? 4.0 : (tier === 'high') ? 7.0 : 5.5;
 
   const out = $('cutoffOut');
-  out.style.display='block';
+  out.style.display = 'block';
 
-  if(bedtimeMin === null || !isFinite(dose) || !isFinite(target) || dose <= 0 || target <= 0){
+  if (bedtimeMin === null || !isFinite(dose) || !isFinite(target) || dose <= 0 || target <= 0) {
     out.className = 'notice warn';
     out.innerHTML = '<strong>Please check your inputs.</strong><div class="muted">Dose and target must be greater than 0.</div>';
     return;
   }
 
   let deltaHours = 0;
-  if(dose > target){
+  if (dose > target) {
     deltaHours = halfLifeH * log2(dose / target);
   }
   const deltaMin = Math.ceil(deltaHours * 60);
@@ -138,9 +138,14 @@
 
   out.className = 'notice ok';
 
+  // Check if cutoff time is negative (previous day)
   const isPrevDay = cutoffMin < 0;
-  const cutoffLabel = 
-    (isPrevDay ? 'Previous day: ' : '') + minutesToTime(cutoffMin) + (isPrevDay ? ' <span class="muted">(previous day)</span>' : '');
+  
+  // Handle negative times (previous day)
+  let cutoffLabel = minutesToTime(cutoffMin);
+  if (isPrevDay) {
+    cutoffLabel = `Previous day: ${minutesToTime(cutoffMin)} <span class="muted">(previous day)</span>`;
+  }
 
   out.innerHTML =
     '<div class="result">Latest cutoff time: ' + cutoffLabel + '</div>' +
@@ -154,6 +159,7 @@
       'Reminder: many sleep resources recommend avoiding substantial caffeine within ~6 hours of bedtime.' +
     '</div>';
 }
+
 
   $('calcCutoff').addEventListener('click', calcCutoff);
 </script>
