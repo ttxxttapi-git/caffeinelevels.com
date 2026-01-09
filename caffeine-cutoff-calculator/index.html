@@ -139,6 +139,12 @@
   out.className = 'notice ok';
 
   // Check if Latest cutoff time > Target bedtime (cutoffMin > bedtimeMin)
+
+  console.log(`bedtimeMin: ${bedtimeMin} minutes`);
+ 
+  console.log(`cutoffMin: ${cutoffMin} minutes`);
+
+      
   const isPrevDay = cutoffMin > bedtimeMin;  // Time falls on previous day
 
   let cutoffLabel = minutesToTime(cutoffMin);
